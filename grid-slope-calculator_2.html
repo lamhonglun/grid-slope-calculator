@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d6b4c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Grid Slope" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Grid Slope Distance Calculator</title>
+  <style>
+    :root {
+      --paper: #f4f1e8;
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --line: #c5c0b2;
+      --accent: #0d6b4c;
+      --accent-dark: #084d37;
+      --amber: #c45c12;
+      --hyp: #b42318;
+      --card: #fffcf6;
+      --shadow: 0 8px 24px rgba(26, 35, 50, 0.08);
+      --tap: 48px;
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-l: env(safe-area-inset-left, 0px);
+      --safe-r: env(safe-area-inset-right, 0px);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        linear-gradient(transparent 19px, rgba(155, 184, 212, 0.22) 20px),
+        linear-gradient(90deg, transparent 19px, rgba(155, 184, 212, 0.22) 20px),
+        var(--paper);
+      background-size: 20px 20px;
+      color: var(--ink);
+      font-family: "Segoe UI", "Noto Sans", "Microsoft JhengHei", system-ui, sans-serif;
+      min-height: 100dvh;
+    }
+
+    button, input, select { touch-action: manipulation; }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: calc(12px + var(--safe-t)) calc(12px + var(--safe-r)) calc(28px + var(--safe-b)) calc(12px + var(--safe-l));
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 12px 14px 10px;
+      margin-bottom: 10px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .sticky-result {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: #10231c;
+      color: #e8fff4;
+      padding: 12px 14px 11px;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 20px rgba(16, 35, 28, 0.28);
+    }
+
+    .result-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .result-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8dccb0;
+      margin: 0 0 2px;
+    }
+
+    .result-main {
+      font-size: clamp(2rem, 9vw, 2.6rem);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .result-unit {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-left: 5px;
+      color: #b7e2cc;
+    }
+
+    .copy-btn {
+      flex: 0 0 auto;
+      min-height: var(--tap);
+      padding: 0 14px;
+      border: 1px solid #2d6b52;
+      background: #16382b;
+      color: #e8fff4;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .formula {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      color: #cde8d9;
+      margin: 8px 0 0;
+      word-break: break-word;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      min-height: var(--tap);
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .field { margin-bottom: 12px; }
+
+    input, select {
+      width: 100%;
+      min-height: var(--tap);
+      border: 1px solid #b9b3a4;
+      border-radius: 0;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+      padding: 10px 12px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: var(--tap) 1fr var(--tap);
+      align-items: stretch;
+    }
+
+    .stepper input {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      border-left: 0;
+      border-right: 0;
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+
+    .step {
+      min-width: var(--tap);
+      min-height: var(--tap);
+      border: 1px solid #b9b3a4;
+      background: #eef4ef;
+      color: var(--accent-dark);
+      font: inherit;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .step:active { background: #cfe3d6; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 5px 0 0;
+      line-height: 1.4;
+    }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      min-height: 40px;
+      min-width: 52px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 12px;
+    }
+
+    .chip.active {
+      background: #e8f4ee;
+      border-color: var(--accent);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .how {
+      background: #f0ece1;
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #2c3646;
+    }
+
+    .how ol { margin: 6px 0 0; padding-left: 18px; }
+
+    details.fold {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 4px 14px 12px;
+    }
+
+    details.fold > summary {
+      min-height: var(--tap);
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent-dark);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    details.fold > summary::-webkit-details-marker { display: none; }
+    details.fold > summary::before {
+      content: "▸";
+      margin-right: 8px;
+      color: var(--accent);
+    }
+    details.fold[open] > summary::before { content: "▾"; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      padding: 10px;
+      background: #fff;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .stat span {
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    .diagram {
+      background: #fff;
+      border: 1px solid var(--line);
+      height: 200px;
+      margin-bottom: 12px;
+    }
+
+    .diagram svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .grid-wrap {
+      border: 1px solid var(--line);
+      background: #fff;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    canvas#mapGrid {
+      display: block;
+      width: 100%;
+      height: auto;
+      touch-action: none;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0 10px;
+    }
+
+    button.btn {
+      min-height: var(--tap);
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      font: inherit;
+      font-weight: 700;
+      padding: 10px 16px;
+    }
+
+    button.btn.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .error {
+      color: #9b1c1c;
+      font-size: 13px;
+      min-height: 0;
+      margin: 0 0 8px;
+    }
+
+    .error:empty { display: none; }
+
+    footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (min-width: 860px) {
+      .wrap { padding: 24px 18px 40px; }
+      header { padding: 20px 24px 16px; margin-bottom: 14px; }
+      h1 { font-size: 1.75rem; }
+      .sub { display: block; }
+      .layout { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .card { padding: 20px 22px; }
+      .diagram { height: 260px; }
+      .sticky-result { margin-bottom: 14px; }
+    }
+
+    @media (max-width: 859px) {
+      .sub { display: none; }
+      .scale-field.hidden { display: none; }
+    }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      .diagram { height: 140px; }
+      .sticky-result { padding: 8px 12px; }
+      .result-main { font-size: 1.7rem; }
+    }
+
+    .tool-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tool-switch button {
+      min-height: var(--tap);
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .tool-switch button[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .tool { display: none; }
+    .tool.active { display: block; }
+
+    .hex-id {
+      font-family: ui-monospace, Consolas, "Cascadia Mono", monospace;
+      font-size: clamp(1.15rem, 5.2vw, 1.7rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      word-break: break-all;
+    }
+
+    .nibble-row {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(26px, 1fr));
+      gap: 3px;
+      margin-top: 10px;
+    }
+
+    .nibble {
+      background: #16382b;
+      border: 1px solid #2d6b52;
+      padding: 6px 1px 5px;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .nibble .v {
+      display: block;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #e8fff4;
+    }
+
+    .nibble .k {
+      display: block;
+      font-size: 8px;
+      line-height: 1.15;
+      color: #8dccb0;
+      margin-top: 2px;
+    }
+
+    .decode-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .use-slope {
+      margin-top: 6px;
+    }
+
+    .bits-note {
+      font-size: 11px;
+      color: #8dccb0;
+      margin: 8px 0 0;
+      font-family: ui-monospace, Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow" id="pageEyebrow">Map grid · Triangle slope · 三角斜距</p>
+      <h1 id="pageTitle">Grid Slope Distance</h1>
+      <p class="sub" id="pageSub">
+        Count the grid squares between two points, enter the two numbers,
+        and get the slope distance: <strong>√(horizontal² + vertical²)</strong>
+      </p>
+    </header>
+
+    <div class="tool-switch" role="tablist">
+      <button type="button" id="nav-slope" aria-selected="true">Grid slope</button>
+      <button type="button" id="nav-rfid" aria-selected="false">RFID C-curve</button>
+    </div>
+
+    <div id="tool-slope" class="tool active">
+    <div class="sticky-result" id="stickyResult">
+      <div class="result-top">
+        <div>
+          <p class="result-label">Slope distance</p>
+          <div><span class="result-main" id="slope">—</span><span class="result-unit">m</span></div>
+        </div>
+        <button class="copy-btn" type="button" id="copyBtn">Copy</button>
+      </div>
+      <p class="formula" id="formula"></p>
+    </div>
+
+    <div class="layout">
+      <section class="card">
+        <h2>Inputs</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab" id="tab-counts" role="tab" aria-selected="true">Grid counts</button>
+          <button class="tab" id="tab-points" role="tab" aria-selected="false">Two points</button>
+        </div>
+
+        <div id="panel-counts" class="panel active">
+          <div class="row">
+            <div class="field">
+              <label for="dx">Horizontal ΔX</label>
+              <div class="stepper">
+                <button class="step" type="button" data-for="dx" data-dir="-1" aria-label="Decrease horizontal">−</button>
+                <input id="dx" type="number" inputmode="decimal" enterkeyhint="next" step="any" min="0" value="8" autocomplete="off" />
+                <button class="step" type="button" data-for="dx" data-dir="1" aria-label="Increase horizontal">+</button>
+              </div>
+              <p class="hint">Squares left / right</p>
+            </div>
+            <div class="field">
+              <label for="dy">Vertical ΔY</label>
+              <div class="stepper">
+                <button class="step" type="button" data-for="dy" data-dir="-1" aria-label="Decrease vertical">−</button>
+                <input id="dy" type="number" inputmode="decimal" enterkeyhint="done" step="any" min="0" value="6" autocomplete="off" />
+                <button class="step" type="button" data-for="dy" data-dir="1" aria-label="Increase vertical">+</button>
+              </div>
+              <p class="hint">Squares up / down</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-points" class="panel">
+          <div class="row">
+            <div class="field">
+              <label for="x1">A · Easting / X</label>
+              <input id="x1" type="number" inputmode="decimal" step="any" value="0" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="y1">A · Northing / Y</label>
+              <input id="y1" type="number" inputmode="decimal" step="any" value="0" autocomplete="off" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="x2">B · Easting / X</label>
+              <input id="x2" type="number" inputmode="decimal" step="any" value="80" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="y2">B · Northing / Y</label>
+              <input id="y2" type="number" inputmode="decimal" step="any" value="60" autocomplete="off" />
+            </div>
+          </div>
+          <p class="hint">If coordinates are already metres, set grid size to 1 m.</p>
+        </div>
+
+        <div class="field">
+          <label for="gridSize">One grid square =</label>
+          <div class="row" style="margin-bottom:0">
+            <input id="gridSize" type="number" inputmode="decimal" step="any" min="0" value="10" autocomplete="off" />
+            <select id="unit">
+              <option value="m" selected>metres (m)</option>
+              <option value="mm">mm on paper</option>
+            </select>
+          </div>
+          <div class="presets" id="presets"></div>
+          <p class="hint" id="scaleHint">On a 1:1000 drawing, a 10 mm square is 10 m on site.</p>
+        </div>
+
+        <div class="field scale-field" id="scaleField">
+          <label for="scale">Drawing scale (for mm on paper)</label>
+          <select id="scale">
+            <option value="200">1:200</option>
+            <option value="500">1:500</option>
+            <option value="1000" selected>1:1000</option>
+            <option value="1250">1:1250</option>
+            <option value="2000">1:2000</option>
+            <option value="2500">1:2500</option>
+            <option value="5000">1:5000</option>
+          </select>
+        </div>
+
+        <p class="error" id="error"></p>
+      </section>
+
+      <section class="card">
+        <h2>Triangle</h2>
+        <div class="diagram" aria-hidden="true">
+          <svg id="tri" viewBox="0 0 400 280"></svg>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>Horizontal</b><span id="hx">—</span></div>
+          <div class="stat"><b>Vertical</b><span id="hy">—</span></div>
+          <div class="stat"><b>Angle</b><span id="ang">—</span></div>
+          <div class="stat"><b>Gradient</b><span id="grad">—</span></div>
+        </div>
+      </section>
+    </div>
+
+    <details class="fold" style="margin-top:10px">
+      <summary>How to use on the drawing</summary>
+      <div class="how">
+        <ol>
+          <li>Pick two points (for example pole 82W and 81E).</li>
+          <li>Count blue grid squares across (ΔX) and up (ΔY). Part squares are allowed, e.g. 7.5.</li>
+          <li>Tap + / − or type the two numbers.</li>
+          <li>Set the real length of one square. Default 10 m matches a 10 mm grid at 1:1000.</li>
+          <li>The red line is the slope distance. The answer stays pinned at the top.</li>
+        </ol>
+      </div>
+    </details>
+
+    <details class="fold" style="margin-top:10px">
+      <summary>Tap two points on a grid</summary>
+      <p class="hint">Tap A, then B. Counts fill in automatically. Drag a point to nudge it.</p>
+      <div class="toolbar">
+        <button class="btn secondary" type="button" id="resetGrid">Reset points</button>
+        <span class="hint" id="gridStatus">No points selected</span>
+      </div>
+      <div class="grid-wrap">
+        <canvas id="mapGrid" width="360" height="300"></canvas>
+      </div>
+    </details>
+
+    <footer>
+      Plan distance only: √(ΔX² + ΔY²). Not 3D chainage. Check the drawing scale bar before using on site.
+      On iPhone: Share → Add to Home Screen for a full-screen shortcut.
+    </footer>
+    </div>
+
+    <div id="tool-rfid" class="tool">
+      <div class="sticky-result" id="rfidSticky">
+        <div class="result-top">
+          <div>
+            <p class="result-label">ID HEX · C-curve 彎位</p>
+            <div class="hex-id" id="rfidId">1904C00101140100</div>
+          </div>
+          <button class="copy-btn" type="button" id="rfidCopy">Copy</button>
+        </div>
+        <div class="nibble-row" id="nibbleRow"></div>
+        <p class="bits-note">19 04 C 0 &nbsp; Tag &nbsp; CurveID &nbsp; Dist &nbsp; 0 &nbsp; Speed &nbsp; Mark</p>
+      </div>
+
+      <section class="card">
+        <h2>From RFID ID definiation.xlsx</h2>
+
+        <div class="field">
+          <label for="curvePick">Known curve (optional)</label>
+          <select id="curvePick"></select>
+          <p class="hint" id="curveNameHint">Or type a new Curve ID below (1–255).</p>
+        </div>
+
+        <div class="field">
+          <label for="tagNo">1. Tag number</label>
+          <select id="tagNo">
+            <option value="1" selected>01 — Tag 1 (for curve) · distance to curve</option>
+            <option value="2">02 — Tag 2 (for curve) · distance to curve</option>
+            <option value="3">03 — Tag 3 (for curve) · distance to zone end</option>
+            <option value="4">04 — Tag 4 (for curve) · 00</option>
+          </select>
+          <p class="hint" id="tagDistHint">Definition default distance: 20 m (hex 14)</p>
+        </div>
+
+        <div class="field">
+          <label for="curveId">2. Curve ID (decimal) · Min 01 Max FF = 255</label>
+          <div class="stepper">
+            <button class="step" type="button" data-for="curveId" data-dir="-1" data-min="1" data-max="255" aria-label="Decrease curve ID">−</button>
+            <input id="curveId" type="number" inputmode="numeric" enterkeyhint="next" min="1" max="255" step="1" value="1" autocomplete="off" />
+            <button class="step" type="button" data-for="curveId" data-dir="1" data-min="1" data-max="255" aria-label="Increase curve ID">+</button>
+          </div>
+          <p class="hint" id="curveHexHint">Decimal 1 → hex 01</p>
+        </div>
+
+        <div class="field">
+          <label for="curveDist">3. Curve distance (decimal, metres)</label>
+          <div class="stepper">
+            <button class="step" type="button" data-for="curveDist" data-dir="-1" data-min="0" data-max="255" aria-label="Decrease distance">−</button>
+            <input id="curveDist" type="number" inputmode="decimal" enterkeyhint="next" min="0" max="255" step="1" value="20" autocomplete="off" />
+            <button class="step" type="button" data-for="curveDist" data-dir="1" data-min="0" data-max="255" aria-label="Increase distance">+</button>
+          </div>
+          <p class="hint" id="distHexHint">Decimal 20 m → hex 14 · Tag1 default 14, Tag2/3 default 0A, Tag4 = 00</p>
+          <button class="btn secondary use-slope" type="button" id="useSlope">Use slope result as distance</button>
+        </div>
+
+        <div class="field">
+          <label for="speedCat">4. Speed limit category</label>
+          <select id="speedCat">
+            <option value="0">0 — no limit</option>
+            <option value="1" selected>1 — 8 km/h</option>
+            <option value="2">2 — 10 km/h</option>
+            <option value="3">3 — 12 km/h</option>
+            <option value="4">4 — 15 km/h</option>
+            <option value="5">5 — 18 km/h</option>
+            <option value="6">6 — 21 km/h</option>
+            <option value="7">7 — 24 km/h</option>
+            <option value="8">8 — 27 km/h</option>
+            <option value="9">9 — 30 km/h</option>
+            <option value="A">A — 33 km/h</option>
+            <option value="B">B — 36 km/h</option>
+            <option value="C">C — 39 km/h</option>
+            <option value="D">D — 42 km/h</option>
+            <option value="E">E — 45 km/h</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tagMark">5. Tag mark number on surface</label>
+          <input id="tagMark" type="text" inputmode="text" enterkeyhint="done" maxlength="4" value="00" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+          <p class="hint">Not converted. Enter the hex written on the tag (1–2 digits), e.g. 6F or 01.</p>
+        </div>
+
+        <p class="error" id="rfidError"></p>
+      </section>
+
+      <section class="card" style="margin-top:10px">
+        <h2>Decode an existing ID</h2>
+        <div class="decode-row">
+          <div class="field" style="margin:0">
+            <label for="rfidDecode">Paste 16-character RFID</label>
+            <input id="rfidDecode" type="text" maxlength="20" placeholder="1904C0010114016F" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+          </div>
+          <button class="btn" type="button" id="decodeBtn">Fill</button>
+        </div>
+        <p class="hint" id="decodeHint">Loads tag number, curve ID, distance, speed and mark from a programmed tag.</p>
+      </section>
+
+      <details class="fold" style="margin-top:10px">
+        <summary>ID HEX map (RFID ID definiation.xlsx)</summary>
+        <div class="how">
+          <ol>
+            <li><strong>19 04</strong> — fixed Tramways RFID header</li>
+            <li><strong>C</strong> — C-curve 彎位</li>
+            <li><strong>0</strong> — reserved</li>
+            <li><strong>01–04</strong> — Tag 1 / 2 / 3 / 4 (for curve)</li>
+            <li><strong>Curve ID</strong> — decimal 1–255 stored as hex 01–FF</li>
+            <li><strong>Distance</strong> — decimal metres stored as hex. Definition examples: Tag1 = 14 (20 m), Tag2 = 0A (10 m), Tag3 = 0A (zone end), Tag4 = 00</li>
+            <li><strong>0</strong> — reserved</li>
+            <li><strong>Speed</strong> — 0 none, 1 = 8 km/h … E = 45 km/h</li>
+            <li><strong>Mark</strong> — tag mark number on surface, not converted</li>
+          </ol>
+        </div>
+      </details>
+
+      <footer>
+        Built from RFID ID definiation.xlsx sheet “ID definiation”, row C-curve 彎位. Curve ID and distance convert decimal → hex. Surface mark is copied as written.
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      mode: "counts",
+      a: null,
+      b: null,
+      drag: null,
+      cols: 12,
+      rows: 10,
+      cell: 30
+    };
+
+    const PRESETS = [
+      { label: "1 m", m: 1 },
+      { label: "5 m", m: 5 },
+      { label: "10 m", m: 10 },
+      { label: "20 m", m: 20 },
+      { label: "25 m", m: 25 },
+      { label: "50 m", m: 50 }
+    ];
+
+    function num(el) {
+      const v = parseFloat(el.value);
+      return Number.isFinite(v) ? v : null;
+    }
+
+    function fmt(n, d = 3) {
+      if (!Number.isFinite(n)) return "—";
+      return Number(n.toFixed(d)).toString();
+    }
+
+    function metresPerSquare() {
+      const size = num($("gridSize"));
+      if (size === null || size <= 0) return null;
+      if ($("unit").value === "mm") {
+        const scale = parseFloat($("scale").value);
+        return (size / 1000) * scale;
+      }
+      return size;
+    }
+
+    function deltas() {
+      if (state.mode === "counts") {
+        const dx = num($("dx"));
+        const dy = num($("dy"));
+        if (dx === null || dy === null) return { err: "Enter both grid counts." };
+        if (dx < 0 || dy < 0) return { err: "Grid counts cannot be negative." };
+        return { dx, dy, err: "" };
+      }
+      const x1 = num($("x1")), y1 = num($("y1"));
+      const x2 = num($("x2")), y2 = num($("y2"));
+      if ([x1, y1, x2, y2].some(v => v === null)) return { err: "Enter all four coordinates." };
+      return { dx: Math.abs(x2 - x1), dy: Math.abs(y2 - y1), err: "" };
+    }
+
+    function drawTriangle(dxm, dym, slope) {
+      const svg = $("tri");
+      const W = 400, H = 280, pad = 52;
+      const maxLeg = Math.max(dxm, dym, 1e-9);
+      const usable = Math.min(W, H) - pad * 2;
+      const sx = (dxm / maxLeg) * usable;
+      const sy = (dym / maxLeg) * usable;
+      const x0 = (W - sx) / 2;
+      const y0 = (H + sy) / 2;
+      const x1 = x0 + sx;
+      const y1 = y0 - sy;
+
+      if (dxm === 0 && dym === 0) {
+        svg.innerHTML = `<text x="200" y="145" text-anchor="middle" fill="#5a6577" font-size="16">Enter two grid numbers</text>`;
+        return;
+      }
+
+      const mark = 12;
+      svg.innerHTML = `
+        <defs>
+          <pattern id="tiny" width="10" height="10" patternUnits="userSpaceOnUse">
+            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#d7e4ef" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="400" height="280" fill="#fbfcff"/>
+        <rect width="400" height="280" fill="url(#tiny)"/>
+        <polygon points="${x0},${y0} ${x1},${y0} ${x1},${y1}" fill="rgba(13,107,76,0.08)" stroke="none"/>
+        <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#c45c12" stroke-width="3"/>
+        <line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#0d6b4c" stroke-width="3"/>
+        <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#b42318" stroke-width="3.5"/>
+        <rect x="${x1 - mark}" y="${y0 - mark}" width="${mark}" height="${mark}" fill="none" stroke="#1a2332" stroke-width="1.4"/>
+        <circle cx="${x0}" cy="${y0}" r="5" fill="#1a2332"/>
+        <circle cx="${x1}" cy="${y1}" r="5" fill="#1a2332"/>
+        <text x="${(x0 + x1) / 2}" y="${y0 + 24}" text-anchor="middle" fill="#c45c12" font-size="14" font-weight="700">ΔX ${fmt(dxm, 2)} m</text>
+        <text x="${Math.min(x1 + 12, 330)}" y="${(y0 + y1) / 2}" fill="#0d6b4c" font-size="14" font-weight="700">ΔY ${fmt(dym, 2)} m</text>
+        <text x="${(x0 + x1) / 2 - 6}" y="${(y0 + y1) / 2 - 10}" text-anchor="middle" fill="#b42318" font-size="15" font-weight="700">slope ${fmt(slope, 3)} m</text>
+      `;
+    }
+
+    function toggleScaleField() {
+      $("scaleField").classList.toggle("hidden", $("unit").value !== "mm");
+      $("scaleField").style.display = $("unit").value === "mm" ? "" : (window.innerWidth < 860 ? "none" : "");
+      if ($("unit").value !== "mm" && window.innerWidth < 860) {
+        $("scaleField").style.display = "none";
+      }
+    }
+
+    function calculate() {
+      toggleScaleField();
+      const d = deltas();
+      $("error").textContent = d.err || "";
+      const mps = metresPerSquare();
+      if (d.err || mps === null) {
+        $("slope").textContent = "—";
+        $("formula").textContent = "";
+        $("hx").textContent = "—";
+        $("hy").textContent = "—";
+        $("ang").textContent = "—";
+        $("grad").textContent = "—";
+        drawTriangle(0, 0, 0);
+        return;
+      }
+
+      const dxm = d.dx * mps;
+      const dym = d.dy * mps;
+      const slope = Math.hypot(dxm, dym);
+      const ang = (dxm === 0 && dym === 0) ? 0 : Math.atan2(dym, dxm) * 180 / Math.PI;
+
+      $("slope").textContent = fmt(slope, 3);
+      $("hx").textContent = fmt(dxm, 3) + " m";
+      $("hy").textContent = fmt(dym, 3) + " m";
+      $("ang").textContent = fmt(ang, 2) + "°";
+      if (dxm === 0 && dym === 0) $("grad").textContent = "—";
+      else if (dym === 0) $("grad").textContent = "level";
+      else if (dxm === 0) $("grad").textContent = "vertical";
+      else $("grad").textContent = "1 in " + fmt(dxm / dym, 2);
+      $("formula").textContent =
+        `√((${fmt(d.dx, 4)} × ${fmt(mps, 4)})² + (${fmt(d.dy, 4)} × ${fmt(mps, 4)})²) = ${fmt(slope, 3)} m`;
+      drawTriangle(dxm, dym, slope);
+      $("scaleHint").textContent = $("unit").value === "mm"
+        ? `Each square is ${fmt(mps, 3)} m on site at 1:${$("scale").value}.`
+        : `Each square is ${fmt(mps, 3)} m on site.`;
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      $("tab-counts").setAttribute("aria-selected", mode === "counts");
+      $("tab-points").setAttribute("aria-selected", mode === "points");
+      $("panel-counts").classList.toggle("active", mode === "counts");
+      $("panel-points").classList.toggle("active", mode === "points");
+      calculate();
+    }
+
+    $("tab-counts").addEventListener("click", () => setMode("counts"));
+    $("tab-points").addEventListener("click", () => setMode("points"));
+
+    ["dx", "dy", "x1", "y1", "x2", "y2", "gridSize", "unit", "scale"].forEach(id => {
+      $(id).addEventListener("input", calculate);
+      $(id).addEventListener("change", calculate);
+      $(id).addEventListener("focus", (e) => e.target.select());
+    });
+
+    document.querySelectorAll(".step").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const el = $(btn.dataset.for);
+        const cur = num(el);
+        const min = btn.dataset.min !== undefined ? Number(btn.dataset.min) : 0;
+        const max = btn.dataset.max !== undefined ? Number(btn.dataset.max) : Infinity;
+        const next = Math.min(max, Math.max(min, (cur === null ? 0 : cur) + Number(btn.dataset.dir)));
+        el.value = String(next);
+        calculate();
+        buildRfid();
+      });
+    });
+
+    const presetBox = $("presets");
+    PRESETS.forEach(p => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (p.m === 10 ? " active" : "");
+      b.textContent = p.label;
+      b.addEventListener("click", () => {
+        $("unit").value = "m";
+        $("gridSize").value = String(p.m);
+        [...presetBox.children].forEach(c => c.classList.remove("active"));
+        b.classList.add("active");
+        calculate();
+      });
+      presetBox.appendChild(b);
+    });
+
+    $("copyBtn").addEventListener("click", async () => {
+      const text = $("slope").textContent;
+      if (!text || text === "—") return;
+      const line = `${text} m  (${$("formula").textContent})`;
+      try {
+        await navigator.clipboard.writeText(line);
+        $("copyBtn").textContent = "Copied";
+        setTimeout(() => { $("copyBtn").textContent = "Copy"; }, 1200);
+      } catch {
+        $("copyBtn").textContent = "Copy failed";
+        setTimeout(() => { $("copyBtn").textContent = "Copy"; }, 1200);
+      }
+    });
+
+    const canvas = $("mapGrid");
+    const ctx = canvas.getContext("2d");
+
+    function sizeCanvas() {
+      const wrap = canvas.parentElement;
+      const cssW = Math.max(280, wrap.clientWidth);
+      const narrow = window.innerWidth < 700;
+      state.cols = narrow ? 12 : 28;
+      state.rows = narrow ? 10 : 12;
+      state.cell = Math.max(24, Math.floor(cssW / state.cols));
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = state.cols * state.cell;
+      const h = state.rows * state.cell;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawGrid();
+    }
+
+    function cellFromEvent(e) {
+      const r = canvas.getBoundingClientRect();
+      const x = (e.clientX - r.left) * (state.cols * state.cell / r.width);
+      const y = (e.clientY - r.top) * (state.rows * state.cell / r.height);
+      const c = Math.max(0, Math.min(state.cols, Math.round(x / state.cell)));
+      const row = Math.max(0, Math.min(state.rows, Math.round(y / state.cell)));
+      return { c, r: row };
+    }
+
+    function drawGrid() {
+      const { cols, rows, cell } = state;
+      ctx.clearRect(0, 0, cols * cell + 1, rows * cell + 1);
+      ctx.fillStyle = "#fbfcff";
+      ctx.fillRect(0, 0, cols * cell, rows * cell);
+      ctx.strokeStyle = "#b9d0e4";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= cols; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cell + 0.5, 0);
+        ctx.lineTo(i * cell + 0.5, rows * cell);
+        ctx.stroke();
+      }
+      for (let j = 0; j <= rows; j++) {
+        ctx.beginPath();
+        ctx.moveTo(0, j * cell + 0.5);
+        ctx.lineTo(cols * cell, j * cell + 0.5);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#7a8798";
+      ctx.font = "11px system-ui";
+      for (let i = 0; i <= cols; i += 2) ctx.fillText(String(i), i * cell + 3, 12);
+      for (let j = 2; j <= rows; j += 2) ctx.fillText(String(j), 4, j * cell - 4);
+
+      if (state.a && state.b) {
+        const ax = state.a.c * cell, ay = state.a.r * cell;
+        const bx = state.b.c * cell, by = state.b.r * cell;
+        ctx.fillStyle = "rgba(13,107,76,0.08)";
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(bx, ay);
+        ctx.lineTo(bx, by);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#c45c12";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, ay); ctx.stroke();
+        ctx.strokeStyle = "#0d6b4c";
+        ctx.beginPath(); ctx.moveTo(bx, ay); ctx.lineTo(bx, by); ctx.stroke();
+        ctx.strokeStyle = "#b42318";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      }
+
+      [["a", "#1a2332", "A"], ["b", "#b42318", "B"]].forEach(([k, col, lab]) => {
+        const p = state[k];
+        if (!p) return;
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(p.c * cell, p.r * cell, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = "bold 14px system-ui";
+        ctx.fillText(lab, p.c * cell + 10, p.r * cell - 10);
+      });
+    }
+
+    function applyClicks() {
+      if (!state.a || !state.b) return;
+      const dx = Math.abs(state.b.c - state.a.c);
+      const dy = Math.abs(state.b.r - state.a.r);
+      $("dx").value = String(dx);
+      $("dy").value = String(dy);
+      $("gridStatus").textContent = `A (${state.a.c}, ${state.a.r}) → B (${state.b.c}, ${state.b.r})  ·  ΔX ${dx}  ΔY ${dy}`;
+      if (state.mode !== "counts") setMode("counts");
+      else calculate();
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      const p = cellFromEvent(e);
+      const hit = 1.1;
+      if (state.a && Math.hypot(p.c - state.a.c, p.r - state.a.r) < hit) state.drag = "a";
+      else if (state.b && Math.hypot(p.c - state.b.c, p.r - state.b.r) < hit) state.drag = "b";
+      else if (!state.a) { state.a = p; $("gridStatus").textContent = "A set. Tap point B."; }
+      else if (!state.b) { state.b = p; applyClicks(); }
+      else { state.a = p; state.b = null; $("gridStatus").textContent = "A reset. Tap point B."; }
+      canvas.setPointerCapture(e.pointerId);
+      drawGrid();
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!state.drag) return;
+      state[state.drag] = cellFromEvent(e);
+      applyClicks();
+      drawGrid();
+    });
+
+    canvas.addEventListener("pointerup", () => { state.drag = null; });
+
+    $("resetGrid").addEventListener("click", () => {
+      state.a = state.b = null;
+      $("gridStatus").textContent = "No points selected";
+      drawGrid();
+    });
+
+    window.addEventListener("resize", sizeCanvas);
+    window.addEventListener("orientationchange", () => setTimeout(sizeCanvas, 250));
+
+    sizeCanvas();
+    calculate();
+
+    const SPEED_LABEL = {
+      "0": "no limit", "1": "8 km/h", "2": "10 km/h", "3": "12 km/h",
+      "4": "15 km/h", "5": "18 km/h", "6": "21 km/h", "7": "24 km/h",
+      "8": "27 km/h", "9": "30 km/h", "A": "33 km/h", "B": "36 km/h",
+      "C": "39 km/h", "D": "42 km/h", "E": "45 km/h"
+    };
+
+    /* Official defaults from RFID ID definiation.xlsx C-curve rows */
+    const TAG_DIST_DEFAULT = { 1: 20, 2: 10, 3: 10, 4: 0 };
+    const TAG_DIST_HEX = { 1: "14", 2: "0A", 3: "0A", 4: "00" };
+    const TAG_DIST_NAME = {
+      1: "distance to curve",
+      2: "distance to curve",
+      3: "distance to zone end",
+      4: "00"
+    };
+
+    const CURVES = [
+      {id:1, zh:"筲箕灣道 & 海晏街 (東行)", en:"Shau Kei Wan Road & Hoi An Street (E)"},
+      {id:2, zh:"筲箕灣道 & 愛秩序灣道 (西行)", en:"Shau Kei Wan Road & Aldrich Bay Road (W)"},
+      {id:3, zh:"筲箕灣道 & 愛秩序灣道 (東行)", en:"Shau Kei Wan Road & Aldrich Bay Road (E)"},
+      {id:4, zh:"筲箕灣道 & 海晏街 (西行)", en:"Shau Kei Wan Road & Hoi An Street (W)"},
+      {id:5, zh:"干諾道中 & 急庇利街 (西行)", en:"Connaught Road Central & Cleverly Street (W)"},
+      {id:6, zh:"德輔道中 & 急庇利街 (東行)", en:"Des Voeux Road Central & Cleverly Street (E)"},
+      {id:7, zh:"干諾道西 & 摩利臣街 (東行)", en:"Connaught Road West & Morrison Street (E)"},
+      {id:8, zh:"德輔道中 & 急庇利街 (西行)", en:"Des Voeux Road Central & Cleverly Street (W)"},
+      {id:9, zh:"干諾道西 & 摩利臣街 (西行)", en:"Connaught Road West & Morrison Street (W)"},
+      {id:10, zh:"干諾道中 & 急庇利街 (東行)", en:"Connaught Road Central & Cleverly Street (E)"},
+      {id:11, zh:"德輔道中 & 摩利臣街 (東行)", en:"Des Voeux Road Central & Morrison Street (E)"},
+      {id:12, zh:"德輔道中 & 摩利臣街 (西行)", en:"Des Voeux Road Central & Morrison Street (W)"},
+      {id:13, zh:"軒尼詩道 & 波斯富街 (西行)", en:"Hennessy Road & Percival Street (W)"},
+      {id:14, zh:"軒尼詩道 & 天樂里 (東行)", en:"Hennessy Road & Tin Lok Lane (E)"},
+      {id:15, zh:"軒尼詩道 & 波斯富街 (東行)", en:"Hennessy Road & Percival Street (E)"},
+      {id:16, zh:"波斯富街 & 禮頓道 (HV)", en:"Percival Street & Leighton Road (HV)"},
+      {id:17, zh:"軒尼詩道 & 天樂里 (西行)", en:"Hennessy Road & Tin Lok Lane (W)"},
+      {id:18, zh:"禮頓道 & 黃泥涌道 (HV)", en:"Leighton Road & Wong Nai Chung Road (HV)"},
+      {id:19, zh:"摩理臣山道 & 禮頓道 (HV)", en:"Morrison Hill Road & Leighton Road (HV)"},
+      {id:20, zh:"山市街 (東行)", en:"Sand Street (E)"},
+      {id:21, zh:"山市街 (西行)", en:"Sand Street (W)"},
+      {id:22, zh:"山道 (東行)", en:"Hill Road (E)"},
+      {id:23, zh:"山道 (西行)", en:"Hill Road (W)"},
+      {id:24, zh:"E-Bank street-01", en:""},
+      {id:25, zh:"W-Pedder Street-01", en:""},
+      {id:26, zh:"W-Bank street-01", en:""},
+      {id:27, zh:"E-Pedder Street-01", en:""},
+      {id:48, zh:"城西道&德輔道西", en:"Shing Sai Road&Des Voeux Road West"},
+      {id:49, zh:"爹核士街&卑路乍街", en:"Davis Street&Belcher's Street"},
+      {id:50, zh:"筲箕灣道&愛秩序灣道", en:"Shau Kei Wan Road&Aldrich Bay Road"},
+      {id:51, zh:"卑路乍街&加多近街", en:"Belcher's Street&Cadogan Street"},
+      {id:53, zh:"城西道&公眾貨物裝卸區", en:"Shing Sai Road&Public Cargo"},
+      {id:54, zh:"城西道&德輔道西", en:"Shing Sai Road&Des Voeux Road West"},
+      {id:55, zh:"德輔道西&出廠", en:"Des Voeux Road West&Exit west depot"},
+      {id:255, zh:"10坑試curve alert 1", en:""}
+    ];
+
+    function pad2(n) {
+      return n.toString(16).toUpperCase().padStart(2, "0");
+    }
+
+    function parseMark(raw) {
+      const s = String(raw || "").trim().toUpperCase().replace(/\s+/g, "");
+      if (!s) return { err: "Enter the surface mark number." };
+      if (!/^[0-9A-F]{1,2}$/.test(s)) {
+        return { err: "Surface mark must be 1–2 hex digits (0-9, A-F). It is not converted from decimal." };
+      }
+      return { val: s.padStart(2, "0"), err: "" };
+    }
+
+    function buildRfid() {
+      const tag = parseInt($("tagNo").value, 10);
+      const curve = num($("curveId"));
+      const distRaw = num($("curveDist"));
+      const speed = $("speedCat").value.toUpperCase();
+      const mark = parseMark($("tagMark").value);
+      let err = "";
+
+      if (![1, 2, 3, 4].includes(tag)) err = "Tag number must be 1–4.";
+      else if (curve === null || curve < 1 || curve > 255 || !Number.isInteger(curve)) {
+        err = "Curve ID must be a whole number from 1 to 255.";
+      } else if (distRaw === null || distRaw < 0 || distRaw > 255) {
+        err = "Distance must be 0–255 metres.";
+      } else if (!Number.isInteger(distRaw)) {
+        err = "Distance is stored as a whole metre (0–255). Round it first.";
+      } else if (!/^[0-9A-E]$/.test(speed)) {
+        err = "Speed category must be 0–9 or A–E.";
+      } else if (mark.err) err = mark.err;
+
+      $("rfidError").textContent = err;
+      if (err) {
+        $("rfidId").textContent = "—";
+        $("nibbleRow").innerHTML = "";
+        return;
+      }
+
+      const tt = pad2(tag);
+      const cc = pad2(curve);
+      const dd = pad2(distRaw);
+      const id = `1904C0${tt}${cc}${dd}0${speed}${mark.val}`;
+      $("rfidId").textContent = id;
+      $("curveHexHint").textContent = `Decimal ${curve} → hex ${cc} · range 1–255 (01–FF)`;
+      $("distHexHint").textContent = `Decimal ${distRaw} m → hex ${dd} · Tag1 default 14, Tag2/3 default 0A, Tag4 = 00`;
+
+      const parts = [
+        ["19", "19"],
+        ["04", "04"],
+        ["C", "type"],
+        ["0", "0"],
+        [tt, "tag"],
+        [cc, "curve"],
+        [dd, "dist"],
+        ["0", "0"],
+        [speed, "speed"],
+        [mark.val, "mark"]
+      ];
+      $("nibbleRow").innerHTML = parts.map(([v, k]) =>
+        `<div class="nibble"><span class="v">${v}</span><span class="k">${k}</span></div>`
+      ).join("");
+
+      const known = CURVES.find(c => c.id === curve);
+      if (known) {
+        $("curveNameHint").textContent = (known.zh || known.en) + (known.en && known.zh ? " · " + known.en : "");
+        if ($("curvePick").value !== String(curve)) $("curvePick").value = String(curve);
+      } else {
+        $("curveNameHint").textContent = "New / unlisted curve ID.";
+        $("curvePick").value = "";
+      }
+      const tagKey = parseInt($("tagNo").value, 10);
+      $("tagDistHint").textContent =
+        `Definition default: ${TAG_DIST_DEFAULT[tagKey]} m (hex ${TAG_DIST_HEX[tagKey]}) · ${TAG_DIST_NAME[tagKey]}`;
+    }
+
+    function decodeRfid() {
+      const raw = $("rfidDecode").value.trim().toUpperCase().replace(/[\s:-]/g, "");
+      if (!/^[0-9A-F]{16}$/.test(raw)) {
+        $("decodeHint").textContent = "Need a 16-character hex ID, e.g. 1904C0010114016F.";
+        return;
+      }
+      if (raw.slice(0, 5) !== "1904C") {
+        $("decodeHint").textContent = "This is not a C-curve ID (must start with 1904C).";
+        return;
+      }
+      const n11 = raw[5];
+      const tt = raw.slice(6, 8);
+      const cc = raw.slice(8, 10);
+      const dd = raw.slice(10, 12);
+      const n4 = raw[12];
+      const s = raw[13];
+      const mm = raw.slice(14, 16);
+      const tag = parseInt(tt, 16);
+      const curve = parseInt(cc, 16);
+      const dist = parseInt(dd, 16);
+      if (tag < 1 || tag > 4) {
+        $("decodeHint").textContent = "Tag number nibble is not 01–04.";
+        return;
+      }
+      if (!/^[0-9A-E]$/.test(s)) {
+        $("decodeHint").textContent = "Speed nibble is not 0–E.";
+        return;
+      }
+      $("tagNo").value = String(tag);
+      $("curveId").value = String(curve);
+      $("curveDist").value = String(dist);
+      $("speedCat").value = s;
+      $("tagMark").value = mm;
+      buildRfid();
+      const warn = [];
+      if (n11 !== "0") warn.push("nibble 11 is " + n11 + " (usually 0)");
+      if (n4 !== "0") warn.push("nibble 4 is " + n4 + " (usually 0)");
+      $("decodeHint").textContent =
+        `Tag ${tag} · curve ${curve} · ${dist} m · ${s} ${SPEED_LABEL[s] || ""} · mark ${mm}` +
+        (warn.length ? " · note: " + warn.join(", ") : "");
+    }
+
+    function showTool(name) {
+      const slope = name === "slope";
+      $("tool-slope").classList.toggle("active", slope);
+      $("tool-rfid").classList.toggle("active", !slope);
+      $("nav-slope").setAttribute("aria-selected", slope);
+      $("nav-rfid").setAttribute("aria-selected", !slope);
+      $("pageEyebrow").textContent = slope
+        ? "Map grid · Triangle slope · 三角斜距"
+        : "RFID Definition C-curve · 彎位";
+      $("pageTitle").textContent = slope ? "Grid Slope Distance" : "RFID C-curve Generator";
+      $("pageSub").innerHTML = slope
+        ? "Count the grid squares between two points, enter the two numbers, and get the slope distance: <strong>√(horizontal² + vertical²)</strong>"
+        : "Uses RFID ID definiation.xlsx · C-curve 彎位. Enter tag, decimal curve ID, distance in metres, speed and surface mark.";
+      if (slope) sizeCanvas();
+      else buildRfid();
+    }
+
+    $("nav-slope").addEventListener("click", () => showTool("slope"));
+    $("nav-rfid").addEventListener("click", () => showTool("rfid"));
+
+    (function fillCurvePick() {
+      const sel = $("curvePick");
+      sel.innerHTML = `<option value="">Custom / new curve ID</option>` +
+        CURVES.map(c => {
+          const label = String(c.id).padStart(2, "0") + " — " + (c.zh || c.en);
+          return `<option value="${c.id}">${label}</option>`;
+        }).join("");
+    })();
+
+    $("curvePick").addEventListener("change", () => {
+      if (!$("curvePick").value) return;
+      $("curveId").value = $("curvePick").value;
+      buildRfid();
+    });
+
+    $("tagNo").addEventListener("change", () => {
+      const t = parseInt($("tagNo").value, 10);
+      if (TAG_DIST_DEFAULT[t] !== undefined) $("curveDist").value = String(TAG_DIST_DEFAULT[t]);
+      buildRfid();
+    });
+
+    ["tagNo", "curveId", "curveDist", "speedCat", "tagMark"].forEach(id => {
+      $(id).addEventListener("input", () => {
+        if (id === "tagMark") $("tagMark").value = $("tagMark").value.toUpperCase();
+        buildRfid();
+      });
+      $(id).addEventListener("change", buildRfid);
+    });
+    $("tagMark").addEventListener("focus", (e) => e.target.select());
+    $("curveId").addEventListener("focus", (e) => e.target.select());
+    $("curveDist").addEventListener("focus", (e) => e.target.select());
+    $("rfidDecode").addEventListener("focus", (e) => e.target.select());
+
+    $("rfidCopy").addEventListener("click", async () => {
+      const text = $("rfidId").textContent;
+      if (!text || text === "—") return;
+      try {
+        await navigator.clipboard.writeText(text);
+        $("rfidCopy").textContent = "Copied";
+        setTimeout(() => { $("rfidCopy").textContent = "Copy"; }, 1200);
+      } catch {
+        $("rfidCopy").textContent = "Copy failed";
+        setTimeout(() => { $("rfidCopy").textContent = "Copy"; }, 1200);
+      }
+    });
+
+    $("decodeBtn").addEventListener("click", decodeRfid);
+    $("rfidDecode").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); decodeRfid(); }
+    });
+
+    $("useSlope").addEventListener("click", () => {
+      const s = parseFloat($("slope").textContent);
+      if (!Number.isFinite(s)) {
+        $("rfidError").textContent = "No slope result yet. Measure on the Grid slope tab first.";
+        return;
+      }
+      const metres = Math.round(s);
+      if (metres < 0 || metres > 255) {
+        $("rfidError").textContent = `Slope ${fmt(s, 2)} m is outside 0–255 m.`;
+        return;
+      }
+      $("curveDist").value = String(metres);
+      buildRfid();
+    });
+
+    buildRfid();
+  </script>
+</body>
+</html>
